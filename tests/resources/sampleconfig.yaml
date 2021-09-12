@@ -1,0 +1,42 @@
+
+session:
+    name: nominal test
+    scenarios:
+        - name: Sc1
+          weight: 2
+          steps:
+                loop:
+                    tasks:
+                        - name: step 1
+                          duration: 10
+                          resources : 50
+                          wait: 30
+        - name: Sc2
+          weight: 10
+          steps:
+                init:
+                    tasks:
+                        - name: load data
+                          duration: 5
+                          resources : 3
+                          parallel: 10
+                        - name: verify data
+                          duration: 10
+                loop:
+                    repeat: 2
+                    tasks:
+                        - name: step 1-3
+                          duration: 2
+                          resources : 5
+                          wait: 5
+                          repeat: 3
+                        - name: step 4
+                          duration: 5
+                          resources : 10
+                          wait: 30
+                finally:
+                    tasks:
+                        - name: whole step
+                          duration: 3
+                          resources : 7
+                          repeat: 4
