@@ -220,9 +220,10 @@ class UsersMonitor:
 
 # wake up every tick and collect
 class UsersGenerator:
-    def __init__(self, world, max_nb_users=10):
+    def __init__(self, world, max_nb_users=10, rampup_batch_size=1):
         self._world = world
         self._max_nb_users = max_nb_users
+        self._rampup_batch_size = rampup_batch_size
         mainLogger.info("creating user generator for %s users", self._max_nb_users)
         self.data = []
         self.active_users = []
@@ -234,6 +235,9 @@ class UsersGenerator:
         while True:
 
             if self.user_count < self._max_nb_users:
+                for counter in range(1, self._rampup_batch_size):  # batch size
+                    self.create_user()
+
                 self.create_user()
 
             self.report()
@@ -383,7 +387,11 @@ class SystemMonitoringAgent:
 
 
 class World:
-    def __init__(self,  session_configuration, nb_users=20, resource_capacity=5):
+    def __init__(self,
+                 session_configuration,
+                 nb_users=20,
+                 resource_capacity=5,
+                 rampup_batch_size=1):
         mainLogger.info("creating simulation")
         self.load_scenarios(session_configuration)
 
@@ -393,7 +401,9 @@ class World:
                                   init=resource_capacity,
                                   capacity=resource_capacity)
         self.user_monitor = UsersMonitor(self)
-        self.user_gen = UsersGenerator(self, max_nb_users=nb_users)
+        self.user_gen = UsersGenerator(self,
+                                       max_nb_users=nb_users,
+                                       rampup_batch_size=rampup_batch_size)
         self.res_agent = SystemMonitoringAgent(self)
 
     # new
