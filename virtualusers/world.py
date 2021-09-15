@@ -9,6 +9,7 @@ from enum import Enum
 import random
 from itertools import repeat
 from ruamel.yaml import YAML
+from datetime import timedelta
 
 log_filename = "logs-10.log"
 mainLogger = logging.getLogger()
@@ -160,13 +161,15 @@ class User:
 
 
 class Clock:
-    def __init__(self):
+    def __init__(self, tick_interval):
+        self.tick_interval = tick_interval
         self.base_epoch = datetime.datetime.now().timestamp()
         mainLogger.info(f"Clock created - base {self.base_epoch}")
 
     def to_date(self, tick):
-        epoch_time = self.base_epoch + tick*60  # mn
-        datetime_time = datetime.datetime.fromtimestamp(epoch_time)
+        delta = tick * self.tick_interval
+        datetime_time = datetime.datetime.fromtimestamp(self.base_epoch) + delta
+
         return datetime_time
 
 
@@ -391,10 +394,12 @@ class World:
                  session_configuration,
                  nb_users=20,
                  resource_capacity=5,
-                 rampup_batch_size=1):
+                 rampup_batch_size=1,
+                 tick_interval=timedelta(minutes=1)):
         mainLogger.info("creating simulation")
         self.load_scenarios(session_configuration)
 
+        self._tick_interval = tick_interval
         self.env = simpy.Environment()
         self.clock = Clock()
         self.res = SystemResource(self.env,
